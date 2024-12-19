@@ -1,0 +1,22 @@
+PHP
+
+CREATE TABLE product(
+	id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(255),
+	price DECIMAL,
+	sale_price DECIMAL,
+	image VARCHAR(2083)
+);
+
+CREATE TABLE cart(
+	id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT
+);
+
+CREATE TABLE cart_product(
+	id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	product_id BIGINT,
+	cart_id BIGINT,
+	quantity INT ,
+FOREIGN KEY (product_id) REFERENCES product(id),
+FOREIGN KEY (cart_id) REFERENCES cart(id)
+);
