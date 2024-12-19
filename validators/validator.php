@@ -1,20 +1,50 @@
 <?php
 
+function getAllErrorsFromValidator(...$validators)
+{
+    $errors = [];
+    foreach ($validators as $validator) {
+        $value = $validator->name;
+
+        $subErrors = $validator->getErrors();
+
+        if (count($subErrors)) {
+            $errors[$value] =  $subErrors;
+        }
+    }
+    return $errors;
+}
+
 class Validator
 {
     private mixed $value;
     private $error_array = [];
     private bool $lastValidationFailed = false;
 
-    function __construct(mixed $value)
+    public string $name;
+
+    function __construct(mixed $value, string $name)
     {
         $this->value = $value;
+        $this->name = $name;
+    }
+
+    function notEmpty()
+    {
+        if (is_null($this->value)) {
+            $this->error_array[] = $this->name . ' Is Empty';
+            $this->lastValidationFailed = true;
+        }
+        return $this;
     }
 
     function toInt()
     {
+        if (is_null($this->value))
+            return $this;
+
         if (!is_numeric($this->value))
-            throw new Error("Can't Sanitize the value");
+            return $this;
 
         $this->value = (int)$this->value;
 
@@ -23,19 +53,22 @@ class Validator
 
     function isInt(int $min = PHP_INT_MIN, int $max = PHP_INT_MAX)
     {
+        if (is_null($this->value))
+            return $this;
+
         if (!is_int($this->value) && !is_numeric($this->value)) {
-            $this->error_array[] = $this->value . ' Type is NOT INT';
+            $this->error_array[] = $this->name . ' Type is NOT INT';
             $this->lastValidationFailed = true;
             return $this;
         }
 
         if ($this->value < $min) {
-            $this->error_array[] = $this->value . ' is less than min';
+            $this->error_array[] = $this->name . ' is less than min';
             $this->lastValidationFailed = true;
         }
 
         if ($this->value > $max) {
-            $this->error_array[] = $this->value . ' is greater than max';
+            $this->error_array[] = $this->name . ' is greater than max';
             $this->lastValidationFailed = true;
         }
 
@@ -44,19 +77,22 @@ class Validator
 
     function isString(int $min = -1, int $max = 2084)
     {
+        if (is_null($this->value))
+            return $this;
+
         if (!is_string($this->value)) {
-            $this->error_array[] = $this->value . ' Type is NOT String';
+            $this->error_array[] = $this->name . ' Type is NOT String';
             $this->lastValidationFailed = true;
             return $this;
         }
 
         if (strlen($this->value) < $min) {
-            $this->error_array[] = $this->value . 'Length is less than min';
+            $this->error_array[] = $this->name . 'Length is less than min';
             $this->lastValidationFailed = true;
         }
 
         if (strlen($this->value) > $max) {
-            $this->error_array[] = $this->value . 'Length is greater than max';
+            $this->error_array[] = $this->name . 'Length is greater than max';
             $this->lastValidationFailed = true;
         }
 
@@ -65,8 +101,11 @@ class Validator
 
     function isDouble()
     {
+        if (is_null($this->value))
+            return $this;
+
         if (!is_double($this->value) && !is_numeric($this->value)) {
-            $this->error_array[] = $this->value . ' Type is NOT Double';
+            $this->error_array[] = $this->name . ' Type is NOT Double';
             $this->lastValidationFailed = true;
         }
         return $this;
@@ -74,8 +113,11 @@ class Validator
 
     function toDouble()
     {
+        if (is_null($this->value))
+            return $this;
+
         if (!is_numeric($this->value))
-            throw new Error("Can't Sanitize the value");
+            return $this;
 
         $this->value = (float)$this->value;
 
@@ -84,8 +126,10 @@ class Validator
 
     function withMessage(string $message)
     {
-        if ($this->lastValidationFailed && count($this->error_array))
+        if ($this->lastValidationFailed && count($this->error_array)) {
             $this->error_array[count($this->error_array) - 1] = $message;
+            $this->lastValidationFailed = false;
+        }
 
         return $this;
     }

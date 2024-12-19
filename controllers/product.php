@@ -72,13 +72,20 @@ class ProductController
                 if (!$path)
                     send_response(['message' => "Image Type Not Supported for this resource"], 400);
 
-                $validatePrice = new Validator($data['price']);
-                $validatePrice->isString()->withMessage('This is not double')->toDouble();
+                $price = new Validator($data['price'] ?? null, 'price');
+                $sale_price = new Validator($data['sale_price'] ?? null, 'sale_price');
 
-                var_dump($data['price']);
-                var_dump($validatePrice->getValue());
+                $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
+                $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
 
-                send_response(['product' => $validatePrice->getValue()], 200);
+                $errors = getAllErrorsFromValidator($price, $sale_price);
+                if (count($errors))
+                    send_response($errors, 422);
+
+                // var_dump($data['price']);
+                // var_dump($price->getValue());
+
+                send_response(['product' => $price->getValue()], 200);
             } elseif ($method === 'GET') {
                 $stmt = $connection->prepare("SELECT * FROM nebulax_task.product");
                 $stmt->execute();
