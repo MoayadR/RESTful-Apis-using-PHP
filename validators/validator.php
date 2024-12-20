@@ -17,7 +17,7 @@ function getAllErrorsFromValidator(...$validators)
 
 class Validator
 {
-    private mixed $value;
+    public mixed $value;
     private $error_array = [];
     private bool $lastValidationFailed = false;
 
@@ -134,13 +134,18 @@ class Validator
         return $this;
     }
 
+    function toString()
+    {
+        if (is_null($this->value))
+            return $this;
+
+        $this->value = (string) $this->value;
+
+        return $this;
+    }
+
     function getErrors()
     {
         return $this->error_array;
-    }
-
-    function getValue()
-    {
-        return $this->value;
     }
 }

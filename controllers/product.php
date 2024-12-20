@@ -74,18 +74,38 @@ class ProductController
 
                 $price = new Validator($data['price'] ?? null, 'price');
                 $sale_price = new Validator($data['sale_price'] ?? null, 'sale_price');
+                $name = new Validator($data['name'] ?? null, 'name');
 
                 $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
                 $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
+                $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
+
+                $price_value = $price->value;
+                $sale_price_value = $sale_price->value;
+                $name_value = $name->value;
 
                 $errors = getAllErrorsFromValidator($price, $sale_price);
                 if (count($errors))
                     send_response($errors, 422);
 
-                // var_dump($data['price']);
-                // var_dump($price->getValue());
+                $stmt = $connection->prepare("INSERT INTO nebulax_task.product (name , price , sale_price , image) VALUES (:name , $price_value , $sale_price_value , :image)");
+                $stmt->bindParam(':name', $name_value, PDO::PARAM_STR);
+                $stmt->bindParam(':image', $path, PDO::PARAM_STR);
 
-                send_response(['product' => $price->getValue()], 200);
+                if ($stmt->execute()) {
+                    $lastId = $connection->lastInsertId();
+
+                    $sql = "SELECT * FROM nebulax_task.product WHERE id = :id";
+                    $stmt = $connection->prepare($sql);
+                    $stmt->bindParam(':id', $lastId, PDO::PARAM_INT);
+                    $stmt->execute();
+
+                    $insertedRow = $stmt->fetch(PDO::FETCH_ASSOC);
+                    send_response($insertedRow, 201);
+                } else {
+                    send_response(['message' => "Couldn't create the product"], 500);
+                }
+                // send_response(['product' => $price->getValue()], 200);
             } elseif ($method === 'GET') {
                 $stmt = $connection->prepare("SELECT * FROM nebulax_task.product");
                 $stmt->execute();
