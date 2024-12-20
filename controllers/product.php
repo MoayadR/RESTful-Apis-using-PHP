@@ -30,7 +30,6 @@ class ProductController
         if (!in_array($_FILES['image']['type'], $this->ALLOWED_TYPES))
             return false;
 
-        // Extract the file extension
         $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         if (!$file_extension) {
             return ["status" => false, "message" => "File extension is missing"];
@@ -38,18 +37,15 @@ class ProductController
 
         $target_dir = "uploads/";
         if (!is_dir('uploads/')) {
-            mkdir('uploads/', 0777, true); // Create the directory with write permissions
+            mkdir('uploads/', 0777, true);
         }
 
         $target_file = $target_dir . basename(generateUUID()) . '.' . $file_extension;
 
-        // Check file size
         if ($_FILES["image"]["size"] > 10000000)
             return false;
 
-        // Move the uploaded file
         if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-            // Get the server host dynamically
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
             $host = $protocol . $_SERVER['HTTP_HOST'];
 
@@ -65,8 +61,7 @@ class ProductController
             send_response(['message' => 'Requested Resource Not Found!'], 404);
 
         try {
-            if ($method === 'POST') // create product
-            {
+            if ($method === 'POST') {
                 $path = $this->handleImageUpload();
 
                 if (!$path)
@@ -105,7 +100,6 @@ class ProductController
                 } else {
                     send_response(['message' => "Couldn't create the product"], 500);
                 }
-                // send_response(['product' => $price->getValue()], 200);
             } elseif ($method === 'GET') {
                 $stmt = $connection->prepare("SELECT * FROM nebulax_task.product");
                 $stmt->execute();

@@ -33,6 +33,7 @@ header('Content-Type: application/json');
 require_once('utils/helpers.php');
 require_once('utils/db-config.php');
 require_once('controllers/product.php');
+require_once('controllers/static-serving.php');
 
 
 $path_elements = get_path_elements();
@@ -50,6 +51,9 @@ switch ($resource_controller) {
 		$product_controller = new ProductController($method, $data, $path_elements, $connection);
 		break;
 	case 'cart':
+		break;
+	case 'uploads':
+		$static_server = new StaticServer($method, $path_elements);
 		break;
 	default:
 		send_response(['message' => 'Requested Resource Not Found!'], 404);
