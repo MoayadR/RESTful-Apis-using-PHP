@@ -4,7 +4,7 @@ CREATE TABLE product(
 	id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(255),
 	price DECIMAL,
-	sale_price DECIMAL,
+	sale_price DECIMAL NULL,
 	image VARCHAR(2083)
 );
 
@@ -20,3 +20,7 @@ CREATE TABLE cart_product(
 FOREIGN KEY (product_id) REFERENCES product(id),
 FOREIGN KEY (cart_id) REFERENCES cart(id)
 );
+
+
+* if i delete a product it should be deleted from the cart_product
+* if i add a product that is in the cart then i should add to its quantity not a new entry

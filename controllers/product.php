@@ -57,7 +57,7 @@ class ProductController
                 $name = new Validator($data['name'] ?? null, 'name');
 
                 $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
-                $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
+                $sale_price->optional()->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
                 $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
 
                 $errors = getAllErrorsFromValidator($price, $sale_price, $name);
@@ -68,9 +68,11 @@ class ProductController
                 $sale_price_value = $sale_price->value;
                 $name_value = $name->value;
 
-                $stmt = $connection->prepare("INSERT INTO nebulax_task.product (name , price , sale_price , image) VALUES (:name , $price_value , $sale_price_value , :image)");
+                $stmt = $connection->prepare("INSERT INTO nebulax_task.product (name , price , sale_price , image) VALUES (:name , :price_value , :sale_price_value , :image)");
                 $stmt->bindParam(':name', $name_value, PDO::PARAM_STR);
                 $stmt->bindParam(':image', $image_path, PDO::PARAM_STR);
+                $stmt->bindParam(':sale_price_value', $sale_price_value);
+                $stmt->bindParam(':price_value', $price_value);
 
                 if ($stmt->execute()) {
                     $lastId = $connection->lastInsertId();

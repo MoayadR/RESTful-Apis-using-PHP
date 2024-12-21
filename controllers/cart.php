@@ -88,6 +88,42 @@ class CartController
                     send_response(['message' => 'Product Added to the cart'], 201);
                 else
                     send_response(['message' => 'Something went wrong'], 500);
+            } elseif ($method === 'GET') {
+                if (!count($path))
+                    send_response(['message' => 'Requested Resource Not Found!'], 404);
+
+                $resource = array_shift($path);
+                $cart_id = $this->find_cart_or_create($connection); // checks if the cart is present or create a new one
+
+                $stmt = $connection->prepare("SELECT * FROM nebulax_task.cart_product LEFT JOIN nebulax_task.product ON nebulax_task.cart_product.product_id = nebulax_task.product.id WHERE cart_id = :cart_id ");
+                $stmt->bindParam(':cart_id', $cart_id, PDO::PARAM_STR);
+                $stmt->execute();
+                $rows = $stmt->fetchAll();
+
+                if ($resource === 'products') {
+                    $products = array_map(function ($element) {
+                        return ['id' => $element['product_id'], 'quantity' => $element['quantity'], 'name' => $element['name'], 'sale_price' => $element['sale_price'], 'price' => $element['price'], 'image' => $element['image']];
+                    }, $rows);
+                    send_response($products, 200);
+                } else if ($resource === 'pricing') {
+                    $subTotal = 0;
+                    $total = 0;
+                    $taxes = 0.1; // 10%
+
+                    foreach ($rows as $row) {
+                        $subTotal += ($row['quantity'] * ($row['sale_price'] ?? $row['price']));
+                    }
+
+                    $total = $subTotal + ($subTotal * $taxes);
+
+                    send_response(['Total' => $total, 'Subtotal' => $subTotal, 'Taxes' => $taxes], 200);
+                } else {
+                    send_response(['message' => 'Requested Resource Not Found!'], 404);
+                }
+            } elseif ($method === 'PATCH') {
+            } elseif ($method === 'DELETE') {
+            } else {
+                send_response(['message' => 'Requested Resource Not Found!'], 404);
             }
         } catch (PDOException $error) {
             send_response(['message' => "Something went wrong in the DB" . $error->getMessage()], 500);

@@ -26,6 +26,7 @@
  * PATCH /cart/:id?quantity=2
  * DELETE /cart/:id
  * GET /pricing
+ * GET /products
  * 
  */
 

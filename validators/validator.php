@@ -38,6 +38,11 @@ class Validator
         return $this;
     }
 
+    function optional()
+    {
+        return $this;
+    }
+
     function toInt()
     {
         if (is_null($this->value))
