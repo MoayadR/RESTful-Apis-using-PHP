@@ -60,13 +60,13 @@ class ProductController
                 $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
                 $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
 
-                $price_value = $price->value;
-                $sale_price_value = $sale_price->value;
-                $name_value = $name->value;
-
                 $errors = getAllErrorsFromValidator($price, $sale_price, $name);
                 if (count($errors))
                     send_response($errors, 422);
+
+                $price_value = $price->value;
+                $sale_price_value = $sale_price->value;
+                $name_value = $name->value;
 
                 $stmt = $connection->prepare("INSERT INTO nebulax_task.product (name , price , sale_price , image) VALUES (:name , $price_value , $sale_price_value , :image)");
                 $stmt->bindParam(':name', $name_value, PDO::PARAM_STR);
@@ -119,13 +119,13 @@ class ProductController
                 $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
                 $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
 
-                $price_value = $price->value;
-                $sale_price_value = $sale_price->value;
-                $name_value = $name->value;
-
                 $errors = getAllErrorsFromValidator($price, $sale_price, $name);
                 if (count($errors))
                     send_response($errors, 422);
+
+                $price_value = $price->value;
+                $sale_price_value = $sale_price->value;
+                $name_value = $name->value;
 
                 $stmt2 = $connection->prepare("UPDATE nebulax_task.product SET name = :name , price = :price , sale_price = :sale_price , image = :image WHERE id = :id");
                 $stmt2->bindParam(':id', $id, PDO::PARAM_STR);
@@ -153,6 +153,12 @@ class ProductController
                 if ($count !== 1)
                     send_response(['message' => 'Product not found'], 404);
 
+                // delete any cart_product associated with the product
+                $stmt = $connection->prepare('DELETE FROM nebulax_task.cart_product WHERE product_id =  :id');
+                $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+                $stmt->execute();
+
+                // delete the product
                 $stmt = $connection->prepare('DELETE FROM nebulax_task.product WHERE id = :id');
                 $stmt->bindParam(':id', $id, PDO::PARAM_STR);
 

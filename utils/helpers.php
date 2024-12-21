@@ -79,6 +79,13 @@ function get_query_params()
     return $_GET;
 }
 
+/**
+ * Form data with method PUT is not parsed in PHP by default 
+ * So this function parses the form data from the PUT request
+ * 
+ * This function parses the form data by dividing each part to a header and a body
+ * then parses the name and filename if it exists and procced to parse the body
+ */
 function get_formdata_PUT()
 {
     // echo $_SERVER['CONTENT_TYPE'];

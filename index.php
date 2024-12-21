@@ -33,6 +33,7 @@ header('Content-Type: application/json');
 require_once('utils/helpers.php');
 require_once('utils/db-config.php');
 require_once('controllers/product.php');
+require_once('controllers/cart.php');
 require_once('controllers/static-serving.php');
 
 $path_elements = get_path_elements();
@@ -47,12 +48,13 @@ $resource_controller = array_shift($path_elements); // remove first element
 
 switch ($resource_controller) {
 	case 'products':
-		$product_controller = new ProductController($method, $data, $path_elements, $connection);
+		new ProductController($method, $data, $path_elements, $connection);
 		break;
 	case 'cart':
+		new CartController($method, $data, $path_elements, $connection);
 		break;
 	case 'uploads':
-		$static_server = new StaticServer($method, $path_elements);
+		new StaticServer($method, $path_elements);
 		break;
 	default:
 		send_response(['message' => 'Requested Resource Not Found!'], 404);
