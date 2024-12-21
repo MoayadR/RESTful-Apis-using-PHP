@@ -107,22 +107,13 @@ class ProductController
                     send_response(['message' => 'Product not found'], 404);
 
 
-                $image_path = $this->handleImageUpload();
-                if (!$image_path) // making the image upload optional
-                    $image_path = $product_row['image'];
+                $data = get_formdata_PUT();
+                $image_path = $data['image']['path'] ?? $product_row['image'];
+                print_r($data);
 
-                var_dump($data);
-
-                $lines = file('php://input');
-                $putdata = '';
-                foreach ($lines as $num => $line) {
-                    // var_dump($line);
-                }
-                // fclose($putfp);
-
-                $price = new Validator(PUT('price') ?? null, 'price');
-                $sale_price = new Validator(PUT('sale_price') ?? null, 'sale_price');
-                $name = new Validator(PUT('name') ?? null, 'name');
+                $price = new Validator($data['price'] ?? null, 'price');
+                $sale_price = new Validator($data['sale_price'] ?? null, 'sale_price');
+                $name = new Validator($data['name'] ?? null, 'name');
 
                 $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
                 $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();

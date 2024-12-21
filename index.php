@@ -35,10 +35,6 @@ require_once('utils/db-config.php');
 require_once('controllers/product.php');
 require_once('controllers/static-serving.php');
 
-get_formdata_PUT();
-
-die;
-
 $path_elements = get_path_elements();
 
 if (!count($path_elements))

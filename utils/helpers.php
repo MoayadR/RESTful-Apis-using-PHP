@@ -111,6 +111,7 @@ function get_formdata_PUT()
             $name = $matches[1];
         }
 
+        $filename = null;
         if (preg_match('/filename="(.*)"/', $headers, $matches)) {
             // print_r($matches);
             $filename = $matches[1] ?? null;
@@ -119,45 +120,19 @@ function get_formdata_PUT()
         if (!is_null($filename)) {
             $extension = pathinfo($filename, PATHINFO_EXTENSION);
             $tempFile = 'uploads/' . generateUUID() . '.' . $extension;
+
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+            $host = $protocol . $_SERVER['HTTP_HOST'];
+
             file_put_contents($tempFile, $body);
             $parsedData[$name] = [
                 'filename' => $filename,
                 'size' => strlen($body),
-                'path' => $tempFile
+                'path' => $host . '/' . $tempFile
             ];
         } else {
             $parsedData[$name] = $body;
         }
     }
-    var_dump($parsedData);
     return $parsedData;
-}
-
-function PUT(string $name): string
-{
-
-    $lines = file('php://input');
-    $keyLinePrefix = 'Content-Disposition: form-data; name="';
-
-    $PUT = [];
-    $findLineNum = null;
-
-    foreach ($lines as $num => $line) {
-        if (strpos($line, $keyLinePrefix) !== false) {
-            if ($findLineNum) {
-                break;
-            }
-            if ($name !== substr($line, 38, -3)) {
-                continue;
-            }
-            $findLineNum = $num;
-        } else if ($findLineNum) {
-            $PUT[] = $line;
-        }
-    }
-
-    array_shift($PUT);
-    array_pop($PUT);
-
-    return mb_substr(implode('', $PUT), 0, -2, 'UTF-8');
 }
