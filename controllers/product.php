@@ -4,7 +4,7 @@ require_once('validators/validator.php');
 
 class ProductController
 {
-    private $ALLOWED_METHODS = ['POST', 'GET', 'PUT'];
+    private $ALLOWED_METHODS = ['POST', 'GET', 'PUT', 'DELETE'];
     private $ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
     function handleImageUpload()
@@ -139,6 +139,28 @@ class ProductController
                 else
                     send_response(['message' => 'Something went wrong'], 500);
             } elseif ($method === 'DELETE') {
+                if (!count($path))
+                    send_response(['message' => 'You must specify the id of the product'], 400);
+
+                $id = array_shift($path);
+
+                $stmt = $connection->prepare('SELECT * FROM nebulax_task.product WHERE id = :id');
+                $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+
+                $stmt->execute();
+                $count = $stmt->rowCount();
+
+                if ($count !== 1)
+                    send_response(['message' => 'Product not found'], 404);
+
+                $stmt = $connection->prepare('DELETE FROM nebulax_task.product WHERE id = :id');
+                $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+
+                if ($stmt->execute()) {
+                    send_response(['message' => 'Product deleted successfully'], 200);
+                } else {
+                    send_response(['message' => "Couldn't delete the product"], 500);
+                }
             }
         } catch (PDOException $error) {
             send_response(['message' => "Something went wrong in the DB" . $error->getMessage()], 500);
