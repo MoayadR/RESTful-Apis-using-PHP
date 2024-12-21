@@ -5,7 +5,7 @@ class StaticServer
     function __construct($method, $path_elements)
     {
         if ($method !== 'GET')
-            send_response(['message' => 'This method is not supported!'], 404);
+            send_response(['message' => 'This method is not supported!'], 403);
 
         if (!count($path_elements))
             send_response(['message' => 'File name required'], 400);

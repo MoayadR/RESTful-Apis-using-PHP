@@ -2,21 +2,6 @@
 
 require_once('validators/validator.php');
 
-function generateUUID()
-{
-    // Generate 16 random bytes
-    $data = random_bytes(16);
-
-    // Set version to 4 (random)
-    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-
-    // Set variant to 10xx
-    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-
-    // Convert to UUID format
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-}
-
 class ProductController
 {
     private $ALLOWED_METHODS = ['POST', 'GET', 'PUT'];
@@ -62,9 +47,9 @@ class ProductController
 
         try {
             if ($method === 'POST') {
-                $path = $this->handleImageUpload();
+                $image_path = $this->handleImageUpload();
 
-                if (!$path)
+                if (!$image_path)
                     send_response(['message' => "Image Type Not Supported for this resource"], 400);
 
                 $price = new Validator($data['price'] ?? null, 'price');
@@ -79,13 +64,13 @@ class ProductController
                 $sale_price_value = $sale_price->value;
                 $name_value = $name->value;
 
-                $errors = getAllErrorsFromValidator($price, $sale_price);
+                $errors = getAllErrorsFromValidator($price, $sale_price, $name);
                 if (count($errors))
                     send_response($errors, 422);
 
                 $stmt = $connection->prepare("INSERT INTO nebulax_task.product (name , price , sale_price , image) VALUES (:name , $price_value , $sale_price_value , :image)");
                 $stmt->bindParam(':name', $name_value, PDO::PARAM_STR);
-                $stmt->bindParam(':image', $path, PDO::PARAM_STR);
+                $stmt->bindParam(':image', $image_path, PDO::PARAM_STR);
 
                 if ($stmt->execute()) {
                     $lastId = $connection->lastInsertId();
@@ -108,6 +93,60 @@ class ProductController
 
                 send_response(['products' => $rows], 200);
             } elseif ($method === 'PUT') {
+                if (!count($path))
+                    send_response(['message' => 'You must specify the product id'], 400);
+
+                $id = array_shift($path);
+
+                $stmt = $connection->prepare("SELECT * FROM nebulax_task.product WHERE id = :id");
+                $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+                $stmt->execute();
+                $product_row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (empty($product_row))
+                    send_response(['message' => 'Product not found'], 404);
+
+
+                $image_path = $this->handleImageUpload();
+                if (!$image_path) // making the image upload optional
+                    $image_path = $product_row['image'];
+
+                var_dump($data);
+
+                $lines = file('php://input');
+                $putdata = '';
+                foreach ($lines as $num => $line) {
+                    // var_dump($line);
+                }
+                // fclose($putfp);
+
+                $price = new Validator(PUT('price') ?? null, 'price');
+                $sale_price = new Validator(PUT('sale_price') ?? null, 'sale_price');
+                $name = new Validator(PUT('name') ?? null, 'name');
+
+                $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
+                $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
+                $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
+
+                $price_value = $price->value;
+                $sale_price_value = $sale_price->value;
+                $name_value = $name->value;
+
+                $errors = getAllErrorsFromValidator($price, $sale_price, $name);
+                if (count($errors))
+                    send_response($errors, 422);
+
+                $stmt2 = $connection->prepare("UPDATE nebulax_task.product SET name = :name , price = :price , sale_price = :sale_price , image = :image WHERE id = :id");
+                $stmt2->bindParam(':id', $id, PDO::PARAM_STR);
+                $stmt2->bindParam(':name', $name_value, PDO::PARAM_STR);
+                $stmt2->bindParam(':price', $price_value);
+                $stmt2->bindParam(':sale_price', $sale_price_value);
+                $stmt2->bindParam(':image', $image_path, PDO::PARAM_STR);
+
+                if ($stmt2->execute())
+                    send_response(['message' => 'Updated the product'], 200);
+                else
+                    send_response(['message' => 'Something went wrong'], 500);
             } elseif ($method === 'DELETE') {
             }
         } catch (PDOException $error) {
