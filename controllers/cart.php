@@ -43,7 +43,7 @@ class CartController
                 $product_id = array_shift($path);
 
                 $quantity = new Validator($data['quantity'] ?? null, 'quantity');
-                $quantity->notEmpty()->withMessage("Quantity can't be empty")->isInt()->withMessage('Quantity must be int')->toInt();
+                $quantity->notEmpty()->withMessage("Quantity can't be empty")->isInt()->withMessage('Quantity must be int')->toInt(0);
 
                 $errors = getAllErrorsFromValidator($quantity);
                 if (count($errors))
@@ -121,7 +121,46 @@ class CartController
                     send_response(['message' => 'Requested Resource Not Found!'], 404);
                 }
             } elseif ($method === 'PATCH') {
+                if (!count($path))
+                    send_response(['message' => 'You must specify the product id'], 400);
+
+                $product_id = array_shift($path);
+
+                $stmt = $connection->prepare('SELECT * FROM nebulax_task.cart_product WHERE product_id = :product_id');
+                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_STR);
+                $stmt->execute();
+                if (!$stmt->rowCount())
+                    send_response(['message' => 'Product is not in the cart'], 404);
+
+                $quantity = new Validator($_GET['quantity'] ?? null, 'quantity');
+
+                $quantity->notEmpty()->withMessage("Quantity can't be empty")->isInt(0)->withMessage('Quantity Must be int')->toInt();
+
+                $quantity_value = $quantity->value;
+
+                $stmt = $connection->prepare('UPDATE nebulax_task.cart_product SET quantity = :quantity_value WHERE product_id = :product_id');
+                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_STR);
+                $stmt->bindParam(':quantity_value', $quantity_value, PDO::PARAM_INT);
+                $stmt->execute();
+
+                send_response(['message' => 'Quantity changed successfully'], 200);
             } elseif ($method === 'DELETE') {
+                if (!count($path))
+                    send_response(['message' => 'You must specify the product id'], 400);
+
+                $product_id = array_shift($path);
+
+                $stmt = $connection->prepare('SELECT * FROM nebulax_task.cart_product WHERE product_id = :product_id');
+                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_STR);
+                $stmt->execute();
+                if (!$stmt->rowCount())
+                    send_response(['message' => 'Product is not in the cart'], 404);
+
+                $stmt = $connection->prepare('DELETE FROM nebulax_task.cart_product WHERE product_id = :product_id');
+                $stmt->bindParam(':product_id', $product_id, PDO::PARAM_STR);
+                $stmt->execute();
+
+                send_response(['message' => 'Deleted the product successfully'], 200);
             } else {
                 send_response(['message' => 'Requested Resource Not Found!'], 404);
             }

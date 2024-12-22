@@ -104,7 +104,7 @@ class Validator
         return $this;
     }
 
-    function isDouble()
+    function isDouble(int $min = PHP_INT_MIN, int $max = PHP_INT_MAX)
     {
         if (is_null($this->value))
             return $this;
@@ -113,6 +113,17 @@ class Validator
             $this->error_array[] = $this->name . ' Type is NOT Double';
             $this->lastValidationFailed = true;
         }
+
+        if ($this->value < $min) {
+            $this->error_array[] = $this->name . ' is less than min';
+            $this->lastValidationFailed = true;
+        }
+
+        if ($this->value > $max) {
+            $this->error_array[] = $this->name . ' is greater than max';
+            $this->lastValidationFailed = true;
+        }
+
         return $this;
     }
 

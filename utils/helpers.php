@@ -57,8 +57,9 @@ function get_path_from_request()
  */
 function get_path_elements()
 {
+    $path = parse_url($_SERVER['REQUEST_URI']);
 
-    $path = get_path_from_request();
+    $path = $path['path'];
 
     $exploded_path = (explode('/', $path));
 

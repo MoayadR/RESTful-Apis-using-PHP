@@ -56,8 +56,8 @@ class ProductController
                 $sale_price = new Validator($data['sale_price'] ?? null, 'sale_price');
                 $name = new Validator($data['name'] ?? null, 'name');
 
-                $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
-                $sale_price->optional()->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
+                $price->notEmpty()->withMessage("Price Can't be empty")->isDouble(0)->withMessage('Price Must Be Double')->toDouble();
+                $sale_price->optional()->isDouble(0)->withMessage('Sale Price Must Be Double')->toDouble();
                 $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
 
                 $errors = getAllErrorsFromValidator($price, $sale_price, $name);
@@ -117,8 +117,8 @@ class ProductController
                 $sale_price = new Validator($data['sale_price'] ?? null, 'sale_price');
                 $name = new Validator($data['name'] ?? null, 'name');
 
-                $price->notEmpty()->withMessage("Price Can't be empty")->isDouble()->withMessage('Price Must Be Double')->toDouble();
-                $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble()->withMessage('Sale Price Must Be Double')->toDouble();
+                $price->notEmpty()->withMessage("Price Can't be empty")->isDouble(0)->withMessage('Price Must Be Double')->toDouble();
+                $sale_price->notEmpty()->withMessage("Sale Price Can't be empty")->isDouble(0)->withMessage('Sale Price Must Be Double')->toDouble();
                 $name->notEmpty()->withMessage("Name Can't be Empty")->isString()->withMessage('Name Must Be String')->toString();
 
                 $errors = getAllErrorsFromValidator($price, $sale_price, $name);
